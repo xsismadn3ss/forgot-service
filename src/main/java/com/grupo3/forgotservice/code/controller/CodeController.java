@@ -34,9 +34,7 @@ public class CodeController {
 
     @PostMapping("/send")
     public ResponseEntity<MessageDto> requestCode(@Valid @RequestBody EmailDto emailDto) {
-        SimpleUserDto user = userService.findByEmail(emailDto.getEmail()).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado")
-        );
+        SimpleUserDto user = userService.findByEmail(emailDto.getEmail());
         String code = randomCodeService.generateCode();
         cacheCodeService.saveCode(code, user.getEmail());
         codeEmailService.sendCodeEmail(user.getEmail(), code);
@@ -48,22 +46,18 @@ public class CodeController {
     @PostMapping("/update")
     public ResponseEntity<MessageDto> updatePassword(@Valid @RequestBody UpdatePasswordDto updatePasswordDto){
         // validar código
-        try{
-            String saved_code = cacheCodeService.getCode(updatePasswordDto.getEmail());
-            if(!saved_code.equals(updatePasswordDto.getCode())){
-                throw  new ResponseStatusException(HttpStatus.BAD_REQUEST, "Código incorrecto");
-            }
-
-            // actualizar contraseña
-            MessageDto data = encryptServiceClient.encrypt( new EncryptDto(updatePasswordDto.getPassword()));
-            userService.updatePassword(updatePasswordDto.getEmail(), data.getMessage());
-            cacheCodeService.deleteCode(updatePasswordDto.getEmail());
-            MessageDto message = new MessageDto("Contraseña actualizada con éxito");
-            return ResponseEntity.ok(message);
-
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            throw new RuntimeException(e);
+        String saved_code = cacheCodeService.getCode(updatePasswordDto.getEmail());
+        if(saved_code == null){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "El código no existe o ha expirado");
+        } else if(!saved_code.equals(updatePasswordDto.getCode())){
+            throw  new ResponseStatusException(HttpStatus.BAD_REQUEST, "Código incorrecto");
         }
+
+        // actualizar contraseña
+        MessageDto data = encryptServiceClient.encrypt( new EncryptDto(updatePasswordDto.getPassword()));
+        userService.updatePassword(updatePasswordDto.getEmail(), data.getMessage());
+        cacheCodeService.deleteCode(updatePasswordDto.getEmail());
+        MessageDto message = new MessageDto("Contraseña actualizada con éxito");
+        return ResponseEntity.ok(message);
     }
 }
