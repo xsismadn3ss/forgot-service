@@ -51,7 +51,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: build/libs/final/app.jar
-          target: /opt/spring-auth-api/
+          target: /opt/spring-forgot-api/
 
       - name: Restart Spring Boot service
         uses: appleboy/ssh-action@v0.1.7
@@ -61,7 +61,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           envs: DB_URL,DB_USER,DB_PASSWORD,CORS_ALLOWED_ORIGINS,MAIL_USERNAME,MAIL_PASSWORD,ENCRYPT_SERVICE_URL
           script: |
-            cat <<EOF > /opt/spring-auth-api/.env
+            cat <<EOF > /opt/spring-forgot-api/.env
             DB_URL=$DB_URL
             DB_USER=$DB_USER
             DB_PASSWORD=$DB_PASSWORD
@@ -70,6 +70,6 @@ jobs:
             MAIL_PASSWORD=$MAIL_PASSWORD
             ENCRYPT_SERVICE_URL=$ENCRYPT_SERVICE_URL
             EOF
-            chmod 600 /opt/spring-auth-api/.env
+            chmod 600 /opt/spring-forgot-api/.env
             sudo systemctl daemon-reload
-            sudo systemctl restart spring-auth-api.service
+            sudo systemctl restart spring-forgot-api.service
