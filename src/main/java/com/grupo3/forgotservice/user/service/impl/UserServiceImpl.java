@@ -5,7 +5,9 @@ import com.grupo3.forgotservice.user.repository.UserRepository;
 import com.grupo3.forgotservice.user.service.IUserMapper;
 import com.grupo3.forgotservice.user.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import shareddtos.usersmodule.auth.SimpleUserDto;
 
 import java.util.Optional;
@@ -35,13 +37,11 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public SimpleUserDto updatePassword(String email, String password) {
-        Optional<User> user = userRepository.findByEmail(email);
-        if (user.isPresent()) {
-            user.get().setPassword(password);
-            userRepository.save(user.get());
-            return userMapper.toDto(user.get()).toSimpleUserDto();
-        } else {
-            return null;
-        }
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado")
+        );
+        user.setPassword(password);
+        userRepository.save(user);
+        return userMapper.toDto(user).toSimpleUserDto();
     }
 }
