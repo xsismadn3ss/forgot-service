@@ -18,7 +18,7 @@ public class CodeEmailServiceImpl implements ICodeEmailService {
 
     @Override
     public void sendCodeEmail(String email, String code) {
-        String htmlContent = templateHelper.getTemplate("forgot-service.html");
+        String htmlContent = templateHelper.getTemplate("forgot-password.html");
         emailHelper.sendEmail(
                 email,
                 "Código de recuperación",
