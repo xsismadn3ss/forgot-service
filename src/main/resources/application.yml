@@ -14,7 +14,7 @@ spring:
       add-mappings: false
 
   datasource:
-    url: ${DB_URL:}
+    url: ${DB_URL:jdbc:mysql://localhost:3306/dev}
     username: ${DB_USER:root}
     password: ${DB_PASSWORD:admin}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -39,7 +39,7 @@ spring:
 
 app:
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:localhost:*}
   clients:
     encrypt-service-url: ${ENCRYPT_SERVICE_URL}
 
