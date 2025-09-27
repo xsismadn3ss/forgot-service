@@ -1,7 +1,6 @@
 name: Deploy Spring Boot API
 
 env:
-#  PORT: ${{secrets.PORT}}
   DB_URL: ${{ secrets.DB_URL }}
   DB_USER: ${{ secrets.DB_USER }}
   DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
@@ -70,7 +69,6 @@ jobs:
             MAIL_USERNAME=$MAIL_USERNAME
             MAIL_PASSWORD=$MAIL_PASSWORD
             ENCRYPT_SERVICE_URL=$ENCRYPT_SERVICE_URL
-#            PORT=$PORT
             EOF
             chmod 600 /opt/spring-forgot-api/.env
             sudo systemctl daemon-reload
