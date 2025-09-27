@@ -21,4 +21,9 @@ public class CacheCodeServiceImpl implements ICacheCodeService {
     public String getCode(String email) {
         return (String) redisTemplate.opsForValue().get(email+"_forgot");
     }
+
+    @Override
+    public void deleteCode(String email) {
+        redisTemplate.delete(email+"_forgot");
+    }
 }
