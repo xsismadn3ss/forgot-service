@@ -19,7 +19,7 @@ public interface IUserService {
      * @param email email
      * @return nulo o datos de usuario
      */
-    Optional<SimpleUserDto> findByEmail(String email);
+    SimpleUserDto findByEmail(String email);
 
     /**
      * Cambiar contraseña de un usuario

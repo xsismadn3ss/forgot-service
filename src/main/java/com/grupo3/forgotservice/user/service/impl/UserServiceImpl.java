@@ -28,11 +28,11 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public Optional<SimpleUserDto> findByEmail(String email) {
-        Optional<User> user = userRepository.findByEmail(email);
-        return user.map(
-                value -> Optional.of(userMapper.toDto(value).toSimpleUserDto()))
-                .orElse(null);
+    public SimpleUserDto findByEmail(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado")
+        );
+        return userMapper.toDto(user).toSimpleUserDto();
     }
 
     @Override
