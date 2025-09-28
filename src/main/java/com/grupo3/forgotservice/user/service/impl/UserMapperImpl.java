@@ -19,16 +19,4 @@ public class UserMapperImpl implements IUserMapper {
         userDto.setPassword(user.getPassword());
         return userDto;
     }
-
-    @Override
-    public User toEntity(UserDto userDto) {
-        User user = new User();
-        user.setId(userDto.getId());
-        user.setUsername(userDto.getUsername());
-        user.setName(userDto.getFirstName());
-        user.setLastname(userDto.getLastName());
-        user.setEmail(userDto.getEmail());
-        user.setPassword(userDto.getPassword());
-        return user;
-    }
 }
