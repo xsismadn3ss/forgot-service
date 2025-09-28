@@ -4,5 +4,4 @@ import shareddtos.usersmodule.auth.UserDto;
 
 public interface IUserMapper {
     UserDto toDto(User user);
-    User toEntity(UserDto userDto);
 }

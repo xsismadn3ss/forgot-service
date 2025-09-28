@@ -2,18 +2,7 @@ package com.grupo3.forgotservice.user.service;
 
 import shareddtos.usersmodule.auth.SimpleUserDto;
 
-import java.util.Optional;
-
 public interface IUserService {
-    /**
-     * Buscar usuario por username, devuelve nulo o datos
-     * de un usuario
-     * @param username nombre de usuario
-     * @return datos de usuario o nulo
-     */
-    Optional<SimpleUserDto> findByUsername(String username);
-
-
     /**
      * Buscar usuario por email
      * @param email email
