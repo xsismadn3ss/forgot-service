@@ -10,8 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import shareddtos.usersmodule.auth.SimpleUserDto;
 
-import java.util.Optional;
-
 @Service
 public class UserServiceImpl implements IUserService {
     @Autowired
@@ -20,15 +18,7 @@ public class UserServiceImpl implements IUserService {
     private IUserMapper userMapper;
 
     @Override
-    public Optional<SimpleUserDto> findByUsername(String username) {
-        Optional<User> user = userRepository.findByUsername(username);
-        return user.map(
-                value -> Optional.of(userMapper.toDto(value).toSimpleUserDto()))
-                .orElse(null);
-    }
-
-    @Override
-    public SimpleUserDto findByEmail(String email) {
+    public SimpleUserDto findByEmail(String email) throws ResponseStatusException {
         User user = userRepository.findByEmail(email).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado")
         );
@@ -36,10 +26,13 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public SimpleUserDto updatePassword(String email, String password) {
+    public SimpleUserDto updatePassword(String email, String password) throws ResponseStatusException {
         User user = userRepository.findByEmail(email).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado")
         );
+        if(password.equals(user.getPassword())){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La contraseña no puede ser igual a la anterior");
+        }
         user.setPassword(password);
         userRepository.save(user);
         return userMapper.toDto(user).toSimpleUserDto();
