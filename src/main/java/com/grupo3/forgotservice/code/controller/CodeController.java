@@ -8,7 +8,6 @@ import com.grupo3.forgotservice.code.service.IRandomCodeService;
 import com.grupo3.forgotservice.encrypt.client.EncryptServiceClient;
 import com.grupo3.forgotservice.user.service.IUserService;
 import jakarta.validation.Valid;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,12 +20,10 @@ import shareddtos.usersmodule.auth.EncryptDto;
 import shareddtos.usersmodule.auth.MessageDto;
 import shareddtos.usersmodule.auth.SimpleUserDto;
 
-@Slf4j
 @RestController
 @RequestMapping("/code")
 public class CodeController {
-    @Autowired
-    private IUserService userService;
+    @Autowired private IUserService userService;
     @Autowired private ICacheCodeService cacheCodeService;
     @Autowired private IRandomCodeService randomCodeService;
     @Autowired private ICodeEmailService codeEmailService;
