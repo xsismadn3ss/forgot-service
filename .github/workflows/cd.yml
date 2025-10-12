@@ -1,0 +1,71 @@
+name: Deploy Spring Boot API (CD)
+on:
+  workflow_run:
+    workflows:
+      - Build and Push Image (CI)
+    types:
+      - completed
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+env:
+  # --- ghcr ---
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+  IMAGE_TAG: latest
+  REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+  REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
+  CONTAINER_NAME: spring-forgot-api
+  # --- docker ---
+  DB_URL: ${{ secrets.DB_URL }}
+  DB_USER: ${{ secrets.DB_USER }}
+  DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+  MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+  MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+  SWAGGER_ENABLED: ${{ secrets.SWAGGER_ENABLED }}
+  APP_PORT: ${{ secrets.PORT }}
+  CORS_ALLOWED_ORIGINS: ${{ secrets.CORS_ALLOWED_ORIGINS }}
+  ENCRYPT_SERVICE_URL: ${{ secrets.ENCRYPT_SERVICE_URL }}
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Desplegar en VPS vía Docker
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: '22'
+          envs: REGISTRY,IMAGE_NAME,IMAGE_TAG,REGISTRY_USERNAME,REGISTRY_TOKEN,CONTAINER_NAME,DB_URL,DB_USER,DB_PASSWORD,MAIL_USERNAME,MAIL_PASSWORD,APP_PORT,CORS_ALLOWED_ORIGINS,ENCRYPT_SERVICE_URL
+          script: |
+            IMAGE="${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+
+            echo "Iniciando sesión en el registro ${REGISTRY}..."
+            echo "${REGISTRY_TOKEN}" | docker login "${REGISTRY}" -u "${REGISTRY_USERNAME}" --password-stdin
+
+            echo "Descargando imagen ${IMAGE}..."
+            docker pull "${IMAGE}"
+
+            echo "Deteniendo y removiendo contenedor previo (si existe)..."
+            docker rm -f "${CONTAINER_NAME}" || true
+            
+            echo "Levantando contenedor..."
+            docker run -d --name "${CONTAINER_NAME}" \
+              -p "${APP_PORT}:${APP_PORT}" \
+              -e PORT="${APP_PORT}" \
+              -e DB_URL="${DB_URL}" \
+              -e DB_USER="${DB_USER}" \
+              -e DB_PASSWORD="${DB_PASSWORD}" \
+              -e MAIL_USERNAME="${MAIL_USERNAME}" \
+              -e MAIL_PASSWORD="${MAIL_PASSWORD}" \
+              -e CORS_ALLOWED_ORIGINS="${CORS_ALLOWED_ORIGINS}" \
+              -e ENCRYPT_SERVICE_URL="${ENCRYPT_SERVICE_URL}" \
+              --restart unless-stopped \
+              "${IMAGE}"
+            
+            echo "Despliegue completado."
