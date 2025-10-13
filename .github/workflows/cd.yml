@@ -41,8 +41,10 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: '22'
-          envs: REGISTRY,IMAGE_NAME,IMAGE_TAG,REGISTRY_USERNAME,REGISTRY_TOKEN,CONTAINER_NAME,DB_URL,DB_USER,DB_PASSWORD,MAIL_USERNAME,MAIL_PASSWORD,APP_PORT,CORS_ALLOWED_ORIGINS,ENCRYPT_SERVICE_URL
+          envs: REGISTRY,IMAGE_NAME,IMAGE_TAG,REGISTRY_USERNAME,REGISTRY_TOKEN,CONTAINER_NAME,DB_URL,DB_USER,DB_PASSWORD,MAIL_USERNAME,MAIL_PASSWORD,APP_PORT,CORS_ALLOWED_ORIGINS,ENCRYPT_SERVICE_URL,SWAGGER_ENABLED
           script: |
+            set -euo pipefail
+            
             IMAGE="${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
 
             echo "Iniciando sesión en el registro ${REGISTRY}..."
@@ -65,7 +67,14 @@ jobs:
               -e MAIL_PASSWORD="${MAIL_PASSWORD}" \
               -e CORS_ALLOWED_ORIGINS="${CORS_ALLOWED_ORIGINS}" \
               -e ENCRYPT_SERVICE_URL="${ENCRYPT_SERVICE_URL}" \
+              -e SWAGGER_ENABLED="${SWAGGER_ENABLED}" \
               --restart unless-stopped \
               "${IMAGE}"
+            
+            echo "Eliminando imágenes no utilizadas..."
+            docker image prune -af || true
+
+            # Opcional: liberar caché del builder si existiera
+            docker builder prune -af || true
             
             echo "Despliegue completado."
