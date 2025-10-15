@@ -9,6 +9,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -23,7 +24,7 @@ public class SecurityConfig {
         String prop = allowedOriginsProp == null ? "" : allowedOriginsProp;
 
         // Soportar valores separados por coma o espacios; limpiar comillas y slashes finales
-        List<String> origins = Stream.of(prop.split("[,\\s]+"))
+        List<String> rawOrigins = Stream.of(prop.split("[,\\s]+"))
                 .map(String::trim)
                 .map(s -> s.replaceAll("^\"|\"$", "")) // quita comillas al inicio/fin si hubiera
                 .filter(s -> !s.isBlank())
@@ -31,13 +32,27 @@ public class SecurityConfig {
                 .distinct()
                 .toList();
 
+        // Normalizar para incluir esquema cuando falte (añadir http y https)
+        List<String> normalized = new ArrayList<>();
+        for (String o : rawOrigins) {
+            String origin = o;
+            boolean hasScheme = origin.startsWith("http://") || origin.startsWith("https://");
+            if (!hasScheme) {
+                // Si no tiene esquema, agregamos ambas variantes
+                normalized.add("http://" + origin);
+                normalized.add("https://" + origin);
+            } else {
+                normalized.add(origin);
+            }
+        }
+
         CorsConfiguration config = new CorsConfiguration();
 
-        boolean hasPattern = origins.stream().anyMatch(o -> o.contains("*") || o.contains("?"));
+        boolean hasPattern = normalized.stream().anyMatch(o -> o.contains("*") || o.contains("?"));
         if (hasPattern) {
-            config.setAllowedOriginPatterns(origins);
+            config.setAllowedOriginPatterns(normalized);
         } else {
-            config.setAllowedOrigins(origins);
+            config.setAllowedOrigins(normalized);
         }
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
