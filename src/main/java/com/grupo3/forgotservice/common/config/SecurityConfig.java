@@ -1,17 +1,19 @@
 package com.grupo3.forgotservice.common.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
 import java.util.List;
 import java.util.stream.Stream;
 
+@Slf4j
 @Configuration
 public class SecurityConfig {
     @Value("${app.cors.allowed-origins}")
@@ -20,26 +22,20 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        String prop = allowedOriginsProp == null ? "" : allowedOriginsProp;
+        List<String> origins = Stream.of(allowedOriginsProp.split(",")).toList();
 
-        // Soportar valores separados por coma o espacios; limpiar comillas y slashes finales
-        List<String> origins = Stream.of(prop.split("[,\\s]+"))
-                .map(String::trim)
-                .map(s -> s.replaceAll("^\"|\"$", "")) // quita comillas al inicio/fin si hubiera
-                .filter(s -> !s.isBlank())
-                .map(s -> s.endsWith("/") ? s.substring(0, s.length() - 1) : s) // sin slash final
-                .distinct()
-                .toList();
+        // Lista de patrones que no tienen patrones
+        List<String> allowedOrigins = origins.stream().filter(o -> !o.contains("*")).toList();
+        // Lista de orígenes que tienen patrones
+        List<String> allowedOriginsPatterns = origins.stream().filter(o -> o.contains("*")).toList();
+
+        log.info("Origins allowed: {}", allowedOrigins);
+        log.info("Origins patterns allowed: {}", allowedOriginsPatterns);
 
         CorsConfiguration config = new CorsConfiguration();
 
-        boolean hasPattern = origins.stream().anyMatch(o -> o.contains("*") || o.contains("?"));
-        if (hasPattern) {
-            config.setAllowedOriginPatterns(origins);
-        } else {
-            config.setAllowedOrigins(origins);
-        }
-
+        config.setAllowedOrigins(allowedOrigins);
+        config.setAllowedOriginPatterns(allowedOriginsPatterns);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"));
         config.setAllowCredentials(true);
@@ -54,7 +50,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
