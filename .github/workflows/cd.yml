@@ -28,6 +28,8 @@ env:
   APP_PORT: ${{ secrets.PORT }}
   CORS_ALLOWED_ORIGINS: ${{ secrets.CORS_ALLOWED_ORIGINS }}
   ENCRYPT_SERVICE_URL: ${{ secrets.ENCRYPT_SERVICE_URL }}
+  REDIS_HOST: ${{ secrets.REDIS_HOST }}
+  REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
 
 jobs:
   deploy:
@@ -41,7 +43,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: '22'
-          envs: REGISTRY,IMAGE_NAME,IMAGE_TAG,REGISTRY_USERNAME,REGISTRY_TOKEN,CONTAINER_NAME,DB_URL,DB_USER,DB_PASSWORD,MAIL_USERNAME,MAIL_PASSWORD,APP_PORT,CORS_ALLOWED_ORIGINS,ENCRYPT_SERVICE_URL,SWAGGER_ENABLED
+          envs: REGISTRY,IMAGE_NAME,IMAGE_TAG,REGISTRY_USERNAME,REGISTRY_TOKEN,CONTAINER_NAME,DB_URL,DB_USER,DB_PASSWORD,MAIL_USERNAME,MAIL_PASSWORD,APP_PORT,CORS_ALLOWED_ORIGINS,ENCRYPT_SERVICE_URL,SWAGGER_ENABLED,REDIS_HOST,REDIS_PASSWORD
           script: |
             set -euo pipefail
             
@@ -68,6 +70,8 @@ jobs:
               -e CORS_ALLOWED_ORIGINS="${CORS_ALLOWED_ORIGINS}" \
               -e ENCRYPT_SERVICE_URL="${ENCRYPT_SERVICE_URL}" \
               -e SWAGGER_ENABLED="${SWAGGER_ENABLED}" \
+              -e REDIS_HOST="${REDIS_HOST}"
+              -e REDIS_PASSWORD="${REDIS_PASSWORD}" \
               --restart unless-stopped \
               "${IMAGE}"
             
